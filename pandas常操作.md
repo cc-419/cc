@@ -1,3 +1,4 @@
+```python
 ## 导入pandas
 import pandas as pd
 import numpy as np
@@ -276,3 +277,4 @@ df = pd.DataFrame({"revenue": [57, 68, 63, 71, 72, 90, 80, 62, 59, 51, 47, 52],
 ax = df.plot.bar("month", "revenue", color="yellow") ## 画出了X轴为month，y轴为revenue的柱状图
 df.plot("month", "advertising", secondary_y=True,ax=ax) ## 上图中有增加了X轴为month，次坐标轴(secondary_y=True)的折线图,其中ax设置为ax才会在一个图中展示，若无该参数设置，则不会展示在一个图中
 
+```
