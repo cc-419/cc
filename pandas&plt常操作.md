@@ -38,6 +38,7 @@ print(s4)
 s4.drop('e',inplace=True) ## ,dt.drop(labels=[列名称])
 print(s4)
 
+
 ### Series修改特定元素
 s4['A']=4
 print(s4)
@@ -80,14 +81,42 @@ df2.columns ## 返回df2的列名
 df2.values ## 查看数据表的值
 df2.describe() ## 数据表统计信息
 df2.T ## 数据表转置
-df2.sort_values(by='age')  # 按 age 升序排列
-df.drop_duplicates() ## 数据去重
-df.dropna() ##删除有缺失值的行
+df2.sort_values(by='age')  # 按 age 升序排列 可以按照两个字段 by =[col1,col2],ascending=[True,False] 实现先升序后降序
+df.drop_duplicates() ## 数据去重 ， 可以加keep参数，保留第一个重复值还是最后一个
+df.dropna(how='all') ##删除整行/列都是缺失值的数据，若用how=‘any’表示删除的是只要行/列存在缺失值都删除
+df.drop(columns=[],inplace=True,errors='ignore') ## 删除某字段,若遇到无该字段，则自动跳过（errors='ignore'）
+df.drop(df[df[A]<0].index,errors='ignore') ## 按条件删除某行
+
 df.fillna(0) ##df控制填充为0
 df.fillna(method='pad') ## 使用缺失值前的值填充
 df.fillna(method='bfill') ## 使用缺失值后的值填充
 df.fillna(df.mean()['C':'E']) ## 使用C 列到 E 列的平均值填充
+df.loc[df['A']=='0','A']=1 ## 更新特定列的值，比如将A列为0的值更新为1，一定要用loc,条件更新
+data.loc[data['A']<2,'A']=2 ## 条件更新
+df.nunique() ##去重计数
+df.sort_index(ascending=True)  ###按照所以排序
+df.isnull().any() ## 返回每个列（key）及对应是否有null值(bool值),若有，则为true，无则为False
+pandas.DataFrame.sample(n=None,frac=None,replace=False,weights=None,random_state=None,axis=None) ## 抽样 n是样本量
+df.query ## ??? 待补充
 
+pd.get_dummies(groups) ### 字段dummy化
+df = pd.DataFrame({'x': pd.Series(['1.0', '2.0', '3.0'], dtype=float), 'y': pd.Series(['1', '2', '3'], dtype=int)}) ##在python中如何创建包含不同类型数据的dataframe
+df.reindex(index=(0,1,3,2))### pandas重新按照索引排序，排序前是0,1,2,3 排序后是0,1,3,2;
+df.sort_index() ### 按照索引重新排序，比如上面是将3和2颠倒了，使用该方法后又重新排序为0，1，2，3
+df.sort_values(by=2,ascending=False) ## 按照第2列，倒序排序，因为columns没有特定指
+## 删除某列
+del df['A'] ## 删除A列
+df.pop(['A']) ## 删除A列
+df.drop(['A'],axis=1,inplace=True) ## 原始数据删除A列,
+
+## 特定列重命名
+df.rename(columns={'a':'A','b':'B'})
+## 全部列重命名
+df.columns=['XXX','XXX',...] ## 数组长度为全部列的长度
+
+
+## 统计数据集中没列字段NaN的个数 
+df.isnull().sum() ## axis=0 表示按列，axis=1表示按行所以，返回每列/行NaN的个数
 
 ##DataFrame切片
 df2[1:3] ##查询 2，3 行
@@ -120,7 +149,7 @@ string.str.upper() ##大写转换
 
 
 ## 缺失值处理
-df4 = df3.copy()
+df4 = df3.copy() ## 复制数据集
 print(df4)
 df4.fillna(value=3) ## df4内空值军填充为3
 df4.dropna(how='any') ### 任何存在 NaN 的行都将被删除
@@ -133,7 +162,7 @@ print(left)
 print(right)
 
 # 按照 key 列对齐连接，只存在 foo2 相同，所以最后变成一行
-pd.merge(left, right, on='key') ## 相当于 sql join  left表的key列=right的key left join right on left.key=right.key
+pd.merge(left, right, on='key',how='innner join') ## 相当于 sql join  left表的key列=right的key left join right on left.key=right.key
 
 ##DataFrame 文件操作
 df3.to_csv('animal.csv') ##文件写入
@@ -191,6 +220,8 @@ pd.pivot_table(df, index=['A', 'B'],values=['D','E'],aggfunc=[np.sum,len]) ## ag
 
 pd.pivot_table(df, values=['D'], index=['A', 'B'],
                columns=['C'], aggfunc=np.sum, fill_value=0) ## 在透视表中由于不同的聚合方式，相应缺少的组合将为缺省值，可以加入 fill_value 对缺省值处理。
+### 数据透视表之后一般要把索引重置
+df_tmp.reset_index() ## 对数据透视表结果的数据df_tmp进行索引重置，会生成新的索引
 
 
 ## set_categories
@@ -201,7 +232,10 @@ df["grade"] = df["raw_grade"].astype("category")
 df["grade"].cat.categories = ["very good", "good", "very bad"] ## 对grade类型重命名，a会为Very good b：good，e：very bad
 df["grade"] = df["grade"].cat.set_categories(
     ["very bad", "bad", "medium", "good", "very good"]) ## 自行试验
-df.groupby("grade").size() ## 查看分组计数后的结果
+df.groupby("grade").size() ## 查看各字段按grade为维度计数的结果
+df.groupby("grade").mean() ## 查看各字段按grade为维度均值的结果
+df.groupby("grade")[列名].nunique() ### 按grade分组，查看特定字段去重值，.sum()/.mean() 都可以实现
+df.groupby("grade").agg({'列1':np.size,'列2':np.sum}) ### 按grade分组，查看列1，计数，列2，求和
 
 ## 缺失值拟合
 df = pd.DataFrame({'From_To': ['LoNDon_paris', 'MAdrid_miLAN', 'londON_StockhOlm',
@@ -234,7 +268,21 @@ def choice(x):
     else:
         return 0
 df.grades = pd.Series(map(lambda x: choice(x), df.grades))
+## 重命名操作
+new_name={'Alice':'cc','BOb':'bod'}
+df['new_name']=df['name'].map)(new_name) ## 未匹配上的会被职位空
+
+df=pd.DataFrame({'name':['Alice','Bob','Candy','Dany','Ella','Frank','Grace','Jenny'],'grades':[58,83,79,65,93,45,61,88]})
+def choice(x):
+    if x > 60:
+        return 1
+    else:
+        return 0
+df.grades = pd.Series(map(lambda x: choice(x), df.grades))
+## 替换某列某个特定值，如下将name未Alice替换的name值替换为cc
+df.loc[df['name']=='Alice','name']='cc'
 df
+
 
 ##不是很懂
 df = pd.DataFrame({'A': [1, 2, 2, 3, 4, 5, 5, 5, 6, 7, 7]})
@@ -277,4 +325,104 @@ df = pd.DataFrame({"revenue": [57, 68, 63, 71, 72, 90, 80, 62, 59, 51, 47, 52],
 ax = df.plot.bar("month", "revenue", color="yellow") ## 画出了X轴为month，y轴为revenue的柱状图
 df.plot("month", "advertising", secondary_y=True,ax=ax) ## 上图中有增加了X轴为month，次坐标轴(secondary_y=True)的折线图,其中ax设置为ax才会在一个图中展示，若无该参数设置，则不会展示在一个图中
 
+```
+
+### 缺失值处理
+```python 
+### 缺失值行/列删除
+data.dropna(how='all',inplace=True) ##删除整行/列都是缺失值的数据，若要删除只要存在缺失值的行/列，则用户how='any'
+### 缺失值填充
+data['缺失值字段名'].fillna(data['缺失值字段名'].mean(),inplace=True) ## 用均值填充
+##相邻值填充
+data['缺失值字段名'].fillna(data[method='bfill',inplace=True)
+## 删除某个值为null的行
+data.dropna(subset=['缺失值字段名'],inplace=True) ##删除"缺失值字段名"为空的整行记录
+```
+
+
+### 数据划分区间
+```python 
+## 划分区间 [32,50),[50,80),....[120,316) right参数设置是否右开，precision设置上线阈值的精度
+pd.cut(data_c4['area_1'],bins=[32,50,80,100,120,316],right=False,precision=0,include_lowest=True)
+
+## 方法2，自己些函数来实现 
+
+def funname_cc(X):
+    if 条件1:
+        XXX
+    elif 条件2：
+        XXX
+    else：
+        XXX
+data_c4['area_1']=data_c4['area'].map(funname_cc)
+```
+
+### 实现sql的union 
+```python
+pd.concat([data1,data2])  ## union
+pd.concat([order_data, order_data2]).drop_duplicates() ## union all
+
+```
+
+### 实现sql的字符串的截取 substr()
+```python
+data['col1'].str[0:10] ##截取前 
+data['col1'].astype(str).str[0:10] ##截取前 
+``` 
+
+### 实现sql的模糊匹配, sql like '%SSS%' like 'SSS%'
+
+```python
+data['col1'].astype(str).str.contains('08-01')]
+data['col1'].astype(str).str.startswith('08-01')] 
+data['col1'].astype(str).str.endswith('08-01')] 
+data['col1'].astype(str).str.extract('08-01')]  ## 正则
+```
+
+### python：replace sql：regexp_replace
+
+
+### pd.to_datetime(ts, format='%Y-%m-%d %H:%M:%S')
+
+
+
+### 画图中文显示问题
+```python
+plt.rcParams['font.family']='sans-serif' 
+plt.rcParams['font.sans-serif']=['SimHei']
+plt.rcParams['axes.unicode_minus']=False 
+
+```
+
+### sql A in ('1','2') pandas.isin([1,2])
+```python
+pd['A'].isin([1,2])
+
+```
+
+### sql lag(字段,1) 实现取前一行数据
+```python
+pd['A'].shift(1)
+
+```
+
+
+### apply 做映射处理
+```python
+def key_2_newkey(x):
+    if x=='No Policy':
+        return 0
+    elif x=='flexible':
+        return 1
+    elif x=='moderate':
+        return 2
+    else:
+        return 3
+        
+data['dim_listing_cancellation_policy_2']=data['dim_listing_cancellation_policy'].apply(key_2_newkey)
+
+```
+### lambda的使用
+```python
+data['dim_has_ticket'] = data['m_tickets'].apply(lambda x: 1 if x >0 else 0) 
 ```
